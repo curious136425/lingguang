@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d1a">
+<link rel="manifest" href="/manifest.json">
+<title>灵光 · 今日灵感</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --card-bg: rgba(250,243,230,0.06);
+  --accent: #c9a96e;
+  --text: #e8dfd0;
+  --text-dim: rgba(232,223,208,0.55);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background-image:
+    radial-gradient(ellipse at 30% 0%, rgba(201,169,110,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 100%, rgba(201,169,110,0.04) 0%, transparent 50%);
+}
+
+/* ---- Widget 容器 ---- */
+.widget {
+  width: 100%;
+  max-width: 380px;
+  min-height: 160px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(30,22,16,0.9) 0%, rgba(13,13,26,0.95) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  padding: 16px 18px 14px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* 顶部装饰线 */
+.widget::before {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
+  opacity: 0.4;
+}
+
+/* ---- 头部 ---- */
+.widget-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding-top: 4px;
+}
+.widget-date {
+  display: flex; align-items: center; gap: 8px;
+}
+.widget-day {
+  font-size: 32px; font-weight: 300; color: var(--text);
+  line-height: 1;
+}
+.widget-month {
+  font-size: 12px; color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.widget-month .weekday {
+  display: block; font-size: 11px; opacity: 0.6; margin-top: 2px;
+}
+.widget-icon {
+  font-size: 20px; opacity: 0.6;
+}
+.widget-badge {
+  font-size: 10px; color: var(--accent);
+  background: rgba(201,169,110,0.12);
+  padding: 3px 10px; border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* ---- 内容区 ---- */
+.widget-body {
+  min-height: 60px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* 单条记录卡片 */
+.entry-snippet {
+  padding: 10px 14px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.entry-snippet:active {
+  background: rgba(201,169,110,0.08);
+  border-color: rgba(201,169,110,0.2);
+}
+.entry-snippet-title {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  margin-bottom: 2px; letter-spacing: 0.3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.entry-snippet-text {
+  font-size: 12px; color: var(--text-dim);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.entry-snippet-time {
+  font-size: 10px; color: rgba(232,223,208,0.35);
+  position: absolute; right: 12px; top: 10px;
+}
+
+/* 空状态 */
+.widget-empty {
+  text-align: center; padding: 12px 0;
+}
+.widget-empty-icon { font-size: 28px; opacity: 0.4; margin-bottom: 6px; }
+.widget-empty-text {
+  font-size: 12px; color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+/* 如果有媒体 */
+.media-dot {
+  display: inline-block; width: 5px; height: 5px;
+  background: var(--accent); border-radius: 50%;
+  margin-left: 5px; vertical-align: middle; opacity: 0.6;
+}
+
+/* ---- 底部操作 ---- */
+.widget-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.widget-updated {
+  font-size: 10px; color: rgba(232,223,208,0.25);
+  letter-spacing: 0.3px;
+}
+.widget-open-btn {
+  font-size: 11px; color: var(--accent);
+  background: none; border: none;
+  letter-spacing: 0.5px; cursor: pointer;
+  opacity: 0.7; transition: opacity 0.2s;
+  padding: 4px 8px; -webkit-tap-highlight-color: transparent;
+}
+.widget-open-btn:active { opacity: 1; }
+
+/* ---- 多条目轮播指示器 ---- */
+.widget-dots {
+  display: flex; gap: 4px; justify-content: center;
+  margin-top: 8px;
+}
+.widget-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: all 0.2s;
+}
+.widget-dot.active { background: var(--accent); width: 12px; border-radius: 4px; }
+
+/* ---- 动画 ---- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in { animation: fadeIn 0.4s ease-out; }
+
+/* ---- 展开详情弹窗 ---- */
+.detail-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 50; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  padding: 20px;
+}
+.detail-overlay.active { opacity: 1; pointer-events: auto; }
+.detail-card {
+  background: #1a1a2e;
+  border-radius: 16px; padding: 20px;
+  width: 100%; max-width: 340px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.detail-card h4 {
+  font-size: 15px; color: var(--text);
+  font-weight: 500; margin-bottom: 8px;
+}
+.detail-card p {
+  font-size: 13px; color: var(--text-dim);
+  line-height: 1.8; white-space: pre-wrap;
+}
+.detail-close {
+  display: block; margin: 12px auto 0;
+  background: none; border: none; color: rgba(255,255,255,0.3);
+  font-size: 12px; cursor: pointer; padding: 6px 14px;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 380px) {
+  .widget { padding: 12px 14px 10px; border-radius: 18px; }
+  .widget-day { font-size: 28px; }
+}
+
+/* 安全区域 */
+@supports (padding: env(safe-area-inset-top)) {
+  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+}
+</style>
+</head>
+<body>
+
+<div class="widget fade-in" id="widget">
+
+  <div class="widget-header">
+    <div class="widget-date">
+      <span class="widget-day" id="wDay">--</span>
+      <div class="widget-month">
+        <span id="wMonth">----</span>
+        <span class="weekday" id="wWeekday">--</span>
+      </div>
+    </div>
+    <span class="widget-icon">📖</span>
+    <span class="widget-badge" id="wBadge">0条</span>
+  </div>
+
+  <div class="widget-body" id="wBody">
+    <div class="widget-empty">
+      <div class="widget-empty-icon">✨</div>
+      <div class="widget-empty-text">今日尚未记录灵感</div>
+    </div>
+  </div>
+
+  <div class="widget-dots" id="wDots" style="display:none;"></div>
+
+  <div class="widget-footer">
+    <span class="widget-updated" id="wUpdated">等待数据...</span>
+    <button class="widget-open-btn" id="btnOpen" title="打开灵光App">打开灵光 ↗</button>
+  </div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-card">
+    <h4 id="detailTitle"></h4>
+    <p id="detailText"></p>
+    <button class="detail-close" id="detailClose">关闭</button>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 灵光 Widget · 桌面卡片
+// ==========================================
+
+const W = {
+  today: '',
+  currentDot: 0,
+
+  init() {
+    const d = new Date();
+    this.today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    this.render();
+    this.bindEvents();
+
+    // 定期刷新（每30秒检查一次数据变化）
+    this._lastUpdate = 0;
+    setInterval(() => this.checkUpdate(), 30000);
+
+    // 页面可见时立即刷新
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) this.render();
+    });
+
+    // 监听 storage 变化（同源其他标签页更新时触发）
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'lingguang_widget' || e.key === 'lingguang_v3') {
+        this.render();
+      }
+    });
+  },
+
+  readData() {
+    // 优先读 Widget 摘要
+    let w;
+    try { w = JSON.parse(localStorage.getItem('lingguang_widget')); } catch { w = null; }
+
+    // 如果摘要没有，从原始数据构建
+    if (!w || !w.todayList) {
+      let entries;
+      try { entries = JSON.parse(localStorage.getItem('lingguang_v3')); } catch { entries = []; }
+      if (!entries) entries = [];
+      const todayList = entries.filter(e => e.date === this.today);
+      w = {
+        updated: Date.now(),
+        today: this.today,
+        todayCount: todayList.length,
+        totalCount: entries.length,
+        todayList: todayList.slice(0, 5).map(e => ({
+          title: e.title || '未命名灵感',
+          text: e.text ? e.text.slice(0, 80) : '',
+          time: this._time(e.id),
+          fullText: e.text || ''
+        }))
+      };
+    }
+    return w;
+  },
+
+  render() {
+    const data = this.readData();
+    if (!data) return;
+
+    // 日期
+    const d = new Date(data.today || this.today);
+    document.getElementById('wDay').textContent = d.getDate();
+    document.getElementById('wMonth').textContent = `${d.getFullYear()}年${d.getMonth()+1}月`;
+    document.getElementById('wWeekday').textContent = this._weekday(data.today || this.today);
+
+    // 徽章
+    document.getElementById('wBadge').textContent = `${data.todayCount || 0}条`;
+
+    // 内容
+    const body = document.getElementById('wBody');
+    const dots = document.getElementById('wDots');
+    const list = data.todayList || [];
+
+    if (list.length === 0) {
+      body.innerHTML = `<div class="widget-empty fade-in">
+        <div class="widget-empty-icon">✨</div>
+        <div class="widget-empty-text">今日尚未记录灵感</div>
+      </div>`;
+      dots.style.display = 'none';
+    } else if (list.length === 1) {
+      const item = list[0];
+      body.innerHTML = `<div class="entry-snippet fade-in" data-idx="0">
+        <div class="entry-snippet-time">${item.time}</div>
+        <div class="entry-snippet-title">${this._esc(item.title)}${(data.latest && data.latest.hasMedia) ? '<span class="media-dot"></span>' : ''}</div>
+        <div class="entry-snippet-text">${this._esc(item.text || '（空白页）')}</div>
+      </div>`;
+      dots.style.display = 'none';
+    } else {
+      // 多条：显示第一条 + 轮播指示器
+      this.currentDot = 0;
+      this._renderMulti(body, dots, list);
+    }
+
+    // 更新时间
+    const elapsed = this._elapsed(data.updated);
+    document.getElementById('wUpdated').textContent = `更新于 ${elapsed}`;
+  },
+
+  _renderMulti(body, dots, list) {
+    // 显示当前条目
+    const item = list[this.currentDot];
+    body.innerHTML = `<div class="entry-snippet fade-in" data-idx="${this.currentDot}">
+      <div class="entry-snippet-time">${item.time}</div>
+      <div class="entry-snippet-title">${this._esc(item.title)}</div>
+      <div class="entry-snippet-text">${this._esc(item.text || '（空白页）')}</div>
+    </div>`;
+
+    // 轮播指示器
+    dots.style.display = 'flex';
+    dots.innerHTML = list.map((_, i) =>
+      `<span class="widget-dot${i === this.currentDot ? ' active' : ''}" data-dot="${i}"></span>`
+    ).join('');
+  },
+
+  checkUpdate() {
+    const data = this.readData();
+    if (data && data.updated && data.updated !== this._lastUpdate) {
+      this._lastUpdate = data.updated;
+      this.render();
+    }
+  },
+
+  bindEvents() {
+    // 点击条目查看详情（读取原始数据获取完整内容）
+    document.getElementById('wBody').addEventListener('click', (e) => {
+      const snippet = e.target.closest('.entry-snippet');
+      if (!snippet) return;
+      const idx = parseInt(snippet.dataset.idx);
+      const data = this.readData();
+      const list = data.todayList || [];
+      if (idx >= 0 && idx < list.length) {
+        // 尝试从原始数据取完整内容
+        let fullText = list[idx].text || '';
+        let title = list[idx].title;
+        try {
+          const entries = JSON.parse(localStorage.getItem('lingguang_v3') || '[]');
+          const match = entries.find(e => e.date === this.today && (e.title || '未命名灵感') === title && e.text && e.text.startsWith(list[idx].text));
+          if (match) fullText = match.text;
+        } catch {}
+        document.getElementById('detailTitle').textContent = title;
+        document.getElementById('detailText').textContent = fullText || '（空白记录）';
+        document.getElementById('detailOverlay').classList.add('active');
+      }
+    });
+
+    // 点击轮播点
+    document.getElementById('wDots').addEventListener('click', (e) => {
+      const dot = e.target.closest('.widget-dot');
+      if (!dot) return;
+      this.currentDot = parseInt(dot.dataset.dot);
+      const data = this.readData();
+      const list = data.todayList || [];
+      this._renderMulti(document.getElementById('wBody'), document.getElementById('wDots'), list);
+    });
+
+    // 关闭详情
+    document.getElementById('detailClose').addEventListener('click', () => {
+      document.getElementById('detailOverlay').classList.remove('active');
+    });
+    document.getElementById('detailOverlay').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) document.getElementById('detailOverlay').classList.remove('active');
+    });
+
+    // 打开主App
+    document.getElementById('btnOpen').addEventListener('click', () => {
+      // 尝试打开主 App 页面（同源）
+      const base = location.pathname.replace(/\/[^/]*$/, '/');
+      location.href = base + 'lingguang.html';
+    });
+
+    // 左右滑动切换条目
+    let touchX = 0;
+    document.getElementById('widget').addEventListener('touchstart', e => {
+      touchX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('widget').addEventListener('touchend', e => {
+      const data = this.readData();
+      const list = data.todayList || [];
+      if (list.length <= 1) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      if (Math.abs(dx) > 30) {
+        if (dx < 0 && this.currentDot < list.length - 1) this.currentDot++;
+        else if (dx > 0 && this.currentDot > 0) this.currentDot--;
+        this._renderMulti(document.getElementById('wBody'), document.getElementById('wDots'), list);
+      }
+    });
+
+    // 单击 widget 空白处刷新
+    document.getElementById('widget').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) this.render();
+    });
+  },
+
+  _time(ts) {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  },
+  _weekday(s) {
+    return ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][new Date(s).getDay()];
+  },
+  _esc(s) {
+    const el = document.createElement('div');
+    el.textContent = s || '';
+    return el.innerHTML;
+  },
+  _elapsed(ts) {
+    if (!ts) return '--';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 60) return '刚刚';
+    if (sec < 3600) return `${Math.floor(sec/60)}分钟前`;
+    if (sec < 86400) return `${Math.floor(sec/3600)}小时前`;
+    return `${Math.floor(sec/86400)}天前`;
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => W.init());
+</script>
+</body>
+</html>
