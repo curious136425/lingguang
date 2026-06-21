@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d0d1a">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <title>灵光 — 捕捉每一瞬灵感</title>
 <style>
 :root {
@@ -629,7 +629,7 @@ const APP = {
   init() {
     // 注册 Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
     const d = new Date();
