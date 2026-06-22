@@ -1502,20 +1502,20 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     const vid = document.getElementById('imgPreviewVid');
     const overlay = document.getElementById('imgPreview');
     
-    // APP 环境下视频：调 Bridge 存本地文件 → 拿到 URI 页面内播放
+    // APP 环境下：Bridge 同步解码 base64 → 返回文件 URI → 页面内播
     const isApp = typeof AndroidBridge !== 'undefined' && AndroidBridge.playVideo;
     if (isApp && type === 'video') {
       overlay.classList.add('active');
       img.style.display = 'none';
       vid.style.display = 'block';
-      vid.src = '';
-      window._onVideoReady = (uri) => {
+      const uri = AndroidBridge.playVideo(src);
+      if (uri) {
         vid.src = uri;
         vid.load();
         vid.play();
-        window._onVideoReady = null;
-      };
-      AndroidBridge.playVideo(src);
+      } else {
+        vid.src = src;
+      }
       return;
     }
     
