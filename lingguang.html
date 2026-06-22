@@ -1501,12 +1501,19 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     const img = document.getElementById('imgPreviewImg');
     const vid = document.getElementById('imgPreviewVid');
     const overlay = document.getElementById('imgPreview');
+    
+    // APP 环境下视频直接调用系统播放器
+    const isApp = typeof AndroidBridge !== 'undefined' && AndroidBridge.playVideo;
+    if (isApp && type === 'video') {
+      AndroidBridge.playVideo(src);
+      return;
+    }
+    
     overlay.classList.add('active');
     
     if (type === 'video') {
       img.style.display = 'none';
       vid.style.display = 'block';
-      // base64 → blob URL，用 fetch 避免 atob 大文件崩溃
       if (src.startsWith('data:')) {
         try {
           const resp = await fetch(src);
@@ -1515,7 +1522,7 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
           vid._blobUrl = URL.createObjectURL(blob);
           vid.src = vid._blobUrl;
         } catch(e) {
-          vid.src = src; // fallback
+          vid.src = src;
         }
       } else {
         vid.src = src;
