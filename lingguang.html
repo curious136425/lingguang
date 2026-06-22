@@ -1497,7 +1497,7 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
   _sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
   _readFile(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(f); }); },
 
-  _previewMedia(src, type) {
+  async _previewMedia(src, type) {
     const img = document.getElementById('imgPreviewImg');
     const vid = document.getElementById('imgPreviewVid');
     const overlay = document.getElementById('imgPreview');
@@ -1506,17 +1506,17 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     if (type === 'video') {
       img.style.display = 'none';
       vid.style.display = 'block';
-      // 把 base64 转成 Blob URL，WebView 才能播视频
+      // base64 → blob URL，用 fetch 避免 atob 大文件崩溃
       if (src.startsWith('data:')) {
-        const parts = src.split(',');
-        const mime = parts[0].split(':')[1].split(';')[0];
-        const raw = atob(parts[1]);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-        const blob = new Blob([bytes], { type: mime });
-        if (vid._blobUrl) URL.revokeObjectURL(vid._blobUrl);
-        vid._blobUrl = URL.createObjectURL(blob);
-        vid.src = vid._blobUrl;
+        try {
+          const resp = await fetch(src);
+          const blob = await resp.blob();
+          if (vid._blobUrl) URL.revokeObjectURL(vid._blobUrl);
+          vid._blobUrl = URL.createObjectURL(blob);
+          vid.src = vid._blobUrl;
+        } catch(e) {
+          vid.src = src; // fallback
+        }
       } else {
         vid.src = src;
       }
