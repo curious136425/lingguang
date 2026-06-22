@@ -1129,6 +1129,11 @@ const APP = {
       vid.onclick = () => this._previewMedia(url, 'video');
       item.appendChild(vid);
     }
+    // 点整个卡片触发预览（避免视频/图片吞事件）
+    item.addEventListener('click', e => {
+      if (e.target.classList.contains('media-del')) return;
+      this._previewMedia(url, type);
+    });
     const del = document.createElement('button');
     del.className = 'media-del'; del.textContent = '×';
     del.onclick = e => { e.stopPropagation(); item.remove(); };
