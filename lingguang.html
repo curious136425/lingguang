@@ -393,7 +393,7 @@ body {
 }
 .upload-area:active { background: rgba(201,169,110,0.08); border-color: var(--accent); }
 .upload-area { position: relative; }
-.upload-area input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0.01; overflow: hidden; }
+.upload-area input { display: none; }
 .upload-label {
   font-size: 12.5px; color: var(--page-secondary);
   display: flex; align-items: center; justify-content: center;
@@ -1420,19 +1420,26 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     const taEdit = el.querySelector('#taEdit');
     if (taEdit) taEdit.addEventListener('input', () => this._autoGrow(taEdit));
 
-    // 文件上传：用直接点击触发，避免浏览器兼容问题
+    // 文件上传：恢复 label+display:none 方式（旧版已验证可用）
     const fiNew = el.querySelector('#fiNew');
-    const upNew = el.querySelector('#upNew');
-    if (fiNew && upNew) {
-      upNew.addEventListener('click', () => fiNew.click());
-      fiNew.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) { this.handleFiles(fs,'new'); this.toast(`已选择 ${fs.length} 个文件`); } };
+    if (fiNew) {
+      fiNew.onchange = e => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const fs = Array.from(e.target.files);
+        e.target.value = '';
+        // 延迟确保 value 清空不触发二次 change
+        setTimeout(() => { if(fs.length) this.handleFiles(fs,'new'); }, 10);
+      };
     }
 
     const fiEdit = el.querySelector('#fiEdit');
-    const upEdit = el.querySelector('#upEdit');
-    if (fiEdit && upEdit) {
-      upEdit.addEventListener('click', () => fiEdit.click());
-      fiEdit.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) { this.handleFiles(fs,'edit'); this.toast(`已选择 ${fs.length} 个文件`); } };
+    if (fiEdit) {
+      fiEdit.onchange = e => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const fs = Array.from(e.target.files);
+        e.target.value = '';
+        setTimeout(() => { if(fs.length) this.handleFiles(fs,'edit'); }, 10);
+      };
     }
 
     // 拖放上传
