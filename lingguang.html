@@ -693,6 +693,7 @@ body {
       <div class="modal-option" data-action="text"><span class="opt-icon">📝</span><span>导出为纯文本</span></div>
       <div class="modal-option" data-action="json"><span class="opt-icon">💾</span><span>导出为 JSON 备份</span></div>
       <div class="modal-option" data-action="markdown"><span class="opt-icon">📋</span><span>导出为 Markdown</span></div>
+      <div class="modal-option" data-action="all" style="border-color:rgba(201,169,110,0.3);background:rgba(201,169,110,0.06);"><span class="opt-icon">📦</span><span>一键导出全部格式</span></div>
     </div>
     <button class="modal-close" id="btnModalClose">取消</button>
   </div>
@@ -1192,6 +1193,19 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     this._download(`灵光_${this.today}.md`, header + md, 'text/markdown');
   },
 
+  async exportAll() {
+    this.toast('📦 开始导出...');
+    this.exportHTML();
+    await this._sleep(400);
+    this.exportMarkdown();
+    await this._sleep(400);
+    this.exportText();
+    await this._sleep(400);
+    this.exportJSON();
+    await this._sleep(300);
+    this.toast('✅ 4 个文件导出完成');
+  },
+
   /* ---- 日历 ---- */
   _calYear: null, _calMonth: null, _calDate: null,
 
@@ -1356,6 +1370,7 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
         else if (a==='text') this.exportText();
         else if (a==='json') this.exportJSON();
         else if (a==='markdown') this.exportMarkdown();
+        else if (a==='all') this.exportAll();
       });
     });
 
