@@ -697,7 +697,8 @@ body {
 
 <div class="img-preview-overlay" id="imgPreview">
   <span class="img-preview-close" id="imgPreviewClose">✕</span>
-  <img id="imgPreviewImg" src="" alt="预览">
+  <img id="imgPreviewImg" src="" alt="预览" style="display:none;">
+  <video id="imgPreviewVid" src="" controls playsinline style="display:none;max-width:93vw;max-height:90vh;border-radius:4px;"></video>
 </div>
 
 <!-- 日历面板 -->
@@ -1121,14 +1122,11 @@ const APP = {
     if (type === 'image') {
       const img = document.createElement('img'); img.src = url; img.dataset.name = name;
       // 点击预览
-      img.onclick = () => {
-        document.getElementById('imgPreviewImg').src = url;
-        document.getElementById('imgPreview').classList.add('active');
-      };
+      img.onclick = () => this._previewMedia(url, 'image');
       item.appendChild(img);
     } else {
       const vid = document.createElement('video'); vid.src = url; vid.muted = true; vid.playsInline = true; vid.dataset.name = name;
-      vid.onclick = () => { if(vid.paused) vid.play(); else vid.pause(); };
+      vid.onclick = () => this._previewMedia(url, 'video');
       item.appendChild(vid);
     }
     const del = document.createElement('button');
@@ -1372,10 +1370,14 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     });
 
     document.getElementById('imgPreviewClose').addEventListener('click', () => {
+      document.getElementById('imgPreviewVid').pause();
       document.getElementById('imgPreview').classList.remove('active');
     });
     document.getElementById('imgPreview').addEventListener('click', e => {
-      if (e.target===e.currentTarget) document.getElementById('imgPreview').classList.remove('active');
+      if (e.target===e.currentTarget) {
+        document.getElementById('imgPreviewVid').pause();
+        document.getElementById('imgPreview').classList.remove('active');
+      }
     });
   },
 
@@ -1468,12 +1470,12 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
       b.onclick = e => { e.stopPropagation(); this.removeEditMedia(Number(b.dataset.rm)); };
     });
 
-    // 图片点击预览
+    // 媒体点击预览
     el.querySelectorAll('.media-item img').forEach(img => {
-      img.onclick = () => {
-        document.getElementById('imgPreviewImg').src = img.src;
-        document.getElementById('imgPreview').classList.add('active');
-      };
+      img.onclick = () => this._previewMedia(img.src, 'image');
+    });
+    el.querySelectorAll('.media-item video').forEach(vid => {
+      vid.onclick = () => this._previewMedia(vid.src, 'video');
     });
   },
 
@@ -1489,6 +1491,24 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
   _esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; },
   _sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
   _readFile(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(f); }); },
+
+  _previewMedia(src, type) {
+    const img = document.getElementById('imgPreviewImg');
+    const vid = document.getElementById('imgPreviewVid');
+    const overlay = document.getElementById('imgPreview');
+    if (type === 'video') {
+      img.style.display = 'none';
+      vid.style.display = '';
+      vid.src = src;
+    } else {
+      vid.style.display = 'none';
+      vid.pause();
+      vid.src = '';
+      img.style.display = '';
+      img.src = src;
+    }
+    overlay.classList.add('active');
+  },
   _download(name, body, mime) {
     const b = new Blob([body],{type:mime}); const u = URL.createObjectURL(b);
     const a = document.createElement('a'); a.href=u; a.download=name;
