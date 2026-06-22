@@ -393,10 +393,7 @@ body {
 }
 .upload-area:active { background: rgba(201,169,110,0.08); border-color: var(--accent); }
 .upload-area { position: relative; }
-.upload-area input { 
-  position: absolute; inset: 0; opacity: 0; cursor: pointer;
-  font-size: 0; display: block; z-index: 2;
-}
+.upload-area input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0.01; overflow: hidden; }
 .upload-label {
   font-size: 12.5px; color: var(--page-secondary);
   display: flex; align-items: center; justify-content: center;
@@ -1100,13 +1097,20 @@ const APP = {
 
   /* ---- 媒体 ---- */
   async handleFiles(files, mode) {
+    let added = 0;
     for (const f of files) {
       if (f.size > 20*1024*1024) { this.toast(`⚠️ "${f.name}" 超过20MB`); continue; }
-      const url = await this._readFile(f);
-      const type = f.type.startsWith('video/') ? 'video' : 'image';
-      if (mode === 'new') this._addToGrid('mgNew', url, type, f.name);
-      else if (mode === 'edit') this._addToEdit(url, type, f.name);
+      try {
+        const url = await this._readFile(f);
+        const type = f.type.startsWith('video/') ? 'video' : 'image';
+        if (mode === 'new') this._addToGrid('mgNew', url, type, f.name);
+        else if (mode === 'edit') this._addToEdit(url, type, f.name);
+        added++;
+      } catch (err) {
+        this.toast(`⚠️ 读取失败: ${f.name}`);
+      }
     }
+    if (added > 0) this.toast(`✅ 已添加 ${added} 个文件`);
   },
 
   _addToGrid(gid, url, type, name) {
@@ -1416,12 +1420,20 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     const taEdit = el.querySelector('#taEdit');
     if (taEdit) taEdit.addEventListener('input', () => this._autoGrow(taEdit));
 
-    // 文件上传（先复制文件列表，再清空input，避免live FileList被清）
+    // 文件上传：用直接点击触发，避免浏览器兼容问题
     const fiNew = el.querySelector('#fiNew');
-    if (fiNew) fiNew.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) this.handleFiles(fs,'new'); };
+    const upNew = el.querySelector('#upNew');
+    if (fiNew && upNew) {
+      upNew.addEventListener('click', () => fiNew.click());
+      fiNew.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) { this.handleFiles(fs,'new'); this.toast(`已选择 ${fs.length} 个文件`); } };
+    }
 
     const fiEdit = el.querySelector('#fiEdit');
-    if (fiEdit) fiEdit.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) this.handleFiles(fs,'edit'); };
+    const upEdit = el.querySelector('#upEdit');
+    if (fiEdit && upEdit) {
+      upEdit.addEventListener('click', () => fiEdit.click());
+      fiEdit.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) { this.handleFiles(fs,'edit'); this.toast(`已选择 ${fs.length} 个文件`); } };
+    }
 
     // 拖放上传
     ['upNew','upEdit'].forEach(uid => {
