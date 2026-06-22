@@ -1416,12 +1416,12 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     const taEdit = el.querySelector('#taEdit');
     if (taEdit) taEdit.addEventListener('input', () => this._autoGrow(taEdit));
 
-    // 文件上传
+    // 文件上传（先复制文件列表，再清空input，避免live FileList被清）
     const fiNew = el.querySelector('#fiNew');
-    if (fiNew) fiNew.onchange = e => { this.handleFiles(e.target.files,'new'); e.target.value=''; };
+    if (fiNew) fiNew.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) this.handleFiles(fs,'new'); };
 
     const fiEdit = el.querySelector('#fiEdit');
-    if (fiEdit) fiEdit.onchange = e => { this.handleFiles(e.target.files,'edit'); e.target.value=''; };
+    if (fiEdit) fiEdit.onchange = e => { const fs = Array.from(e.target.files); e.target.value=''; if(fs.length) this.handleFiles(fs,'edit'); };
 
     // 拖放上传
     ['upNew','upEdit'].forEach(uid => {
