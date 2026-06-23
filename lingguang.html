@@ -1547,6 +1547,18 @@ h1{margin-bottom:6px;}h2{font-size:14px;margin-bottom:28px;}</style></head>
     }
   },
   _download(name, body, mime) {
+    // APK 环境：走 Bridge 直接写入下载文件夹
+    if (typeof AndroidBridge !== 'undefined' && AndroidBridge.saveDownload) {
+      const result = AndroidBridge.saveDownload(name, body, mime);
+      const format = name.endsWith('.md') ? 'Markdown' : name.endsWith('.json') ? 'JSON' : name.endsWith('.txt') ? '文本' : 'HTML';
+      if (result) {
+        this.toast(`✅ ${format} 已保存到下载文件夹`);
+      } else {
+        this.toast('⚠️ 导出失败，请重试');
+      }
+      return;
+    }
+    // 网页版：触发浏览器下载
     const b = new Blob([body],{type:mime}); const u = URL.createObjectURL(b);
     const a = document.createElement('a'); a.href=u; a.download=name;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
